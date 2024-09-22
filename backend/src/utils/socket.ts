@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import { logger } from "./logger";
 
 export type IOClient = Server<
   DefaultEventsMap,
@@ -25,10 +26,10 @@ export function initWS(
   });
 
   io.on("connection", (socket) => {
-    console.log("a user connected", socket.id);
+    logger.info({ socketId: socket.id }, "a user connected");
 
     socket.on("disconnect", () => {
-      console.log("client disconnected", socket.id);
+      logger.info({ socketId: socket.id }, "client disconnected");
     });
   });
 
