@@ -34,7 +34,7 @@ export function initWS(
       // Handle additional logic here
     });
 
-    socket.on("command", (data) => {
+    socket.on("terminal:input", (data) => {
       const { userId, command } = data;
       const podName = `workspace-pod-${userId}`; // Assume pod is already created
       const namespace = "default";
@@ -57,7 +57,7 @@ export function initWS(
         },
         (stderr) => {
           console.error("Command error:", stderr);
-          socket.emit("output", stderr); // Send error output
+          socket.emit("terminal:output", stderr); // Send error output
         },
         socket, // Pass the socket for interactive sessions
         true /* tty */

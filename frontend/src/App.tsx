@@ -1,4 +1,6 @@
 import "./App.css";
+import { NextUIProvider } from "@nextui-org/react";
+
 import { useSocket } from "./lib/socket";
 
 function App() {
@@ -7,9 +9,11 @@ function App() {
   console.log("isconnected", isConnected);
 
   return (
-    <div className="App">
-      <h1>Hello Vite + React!</h1>
-    </div>
+    <NextUIProvider>
+      <h1 className="text-3xl font-bold text-red-400 underline">
+        Hello world!
+      </h1>
+    </NextUIProvider>
   );
 }
 
