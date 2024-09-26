@@ -64,16 +64,21 @@ async function initServer() {
   });
 
   app.get("/files", async (req, res, next) => {
-    socket.emit(
-      "files:changed",
-      JSON.stringify({
-        message: "I will send some files here",
-      })
-    );
+    try {
+      socket.emit(
+        "files:changed",
+        JSON.stringify({
+          message: "I will send some files here",
+        })
+      );
 
-    res.json({
-      message: "I will send files",
-    });
+      res.json({
+        message: "I will send files",
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Something went wrong" });
+    }
   });
 
   app.use((error: any, req: Request, res: Response, next: NextFunction) => {
