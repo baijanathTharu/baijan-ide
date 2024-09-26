@@ -1,11 +1,5 @@
 FROM node:20-alpine as BUILDER
 
-# Install necessary packages including and other build tools
-RUN apt-get update && \
-  apt-get install -y curl bash python3 make gcc g++ build-essential && \
-  apt-get clean && \
-  rm -rf /var/lib/apt/lists/*
-
 # Set the working directory
 WORKDIR /app
 
@@ -16,9 +10,11 @@ RUN yarn install --frozen-lockfile
 
 COPY . .
 
+RUN ls -la
+
 # Build the project
 
-RUN npx tsc
+RUN yarn build
 
 # runner
 FROM node:20-alpine as RUNNER

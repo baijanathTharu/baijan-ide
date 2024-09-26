@@ -144,6 +144,16 @@ async function initServer() {
                 mountPath: "/workspace",
               },
             ],
+            environment: [
+              {
+                name: "PORT",
+                value: "3000",
+              },
+              {
+                name: "MAIN_SERVER_URL",
+                value: "http://localhost:4001",
+              },
+            ],
           },
         ],
         volumes: [
