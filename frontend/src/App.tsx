@@ -2,6 +2,7 @@ import "./App.css";
 import { NextUIProvider } from "@nextui-org/react";
 
 import { useSocket } from "./lib/socket";
+import { VSCode } from "./components/editor";
 
 function App() {
   const { isConnected } = useSocket();
@@ -10,9 +11,7 @@ function App() {
 
   return (
     <NextUIProvider>
-      <h1 className="text-3xl font-bold text-red-400 underline">
-        Hello world!
-      </h1>
+      <VSCode />
     </NextUIProvider>
   );
 }

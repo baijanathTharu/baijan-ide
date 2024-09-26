@@ -2,7 +2,9 @@ import { Server } from "socket.io";
 import http from "http";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { logger } from "./logger";
-import { exec } from "./kubeconfig";
+import { execInPod, k8sExec } from "./kubeconfig";
+import { V1Status } from "@kubernetes/client-node";
+import { PassThrough } from "stream";
 
 export type IOClient = Server<
   DefaultEventsMap,
@@ -10,6 +12,12 @@ export type IOClient = Server<
   DefaultEventsMap,
   any
 >;
+
+function cleanOutput(output: string) {
+  // Regex to match ANSI escape sequences
+  const ansiRegex = /\x1B\[[0-?9;]*[mK]/g;
+  return output.replace(ansiRegex, ""); // Remove ANSI escape sequences
+}
 
 export function initWS(
   httpServer: http.Server<
@@ -29,43 +37,84 @@ export function initWS(
   io.on("connection", (socket) => {
     logger.info({ socketId: socket.id }, "a user connected");
 
-    socket.on("join", (data) => {
-      console.log(`User ${data.userId} joined`);
+    socket.on("terminal:ready", (data) => {
+      console.log(`terminal ready for`, data);
       // Handle additional logic here
-    });
 
-    socket.on("terminal:input", (data) => {
-      const { userId, command } = data;
+      const { userId } = data;
       const podName = `workspace-pod-${userId}`; // Assume pod is already created
       const namespace = "default";
 
+      // const fullCommand = `cd ~ && ${command}`; // Change directory to home before executing the command
+
+      // stdin.write(fullCommand); // Write command to stdin
+
       console.log({
         userId,
-        command,
       });
 
-      // Execute the command in the Kubernetes pod
-      exec.exec(
-        namespace,
-        podName,
-        "nodejs-container", // The name of the container inside the pod
-        command,
-        (stdout) => {
-          console.log("Command output:", stdout);
-          // Send command output back to the user's socket
-          socket.emit("output", stdout);
-        },
-        (stderr) => {
-          console.error("Command error:", stderr);
-          socket.emit("terminal:output", stderr); // Send error output
-        },
-        socket, // Pass the socket for interactive sessions
-        true /* tty */
+      const stdout = new PassThrough(); // Use PassThrough for stdout
+      const stdin = new PassThrough(); // Use PassThrough for stdin
+
+      stdout.on("data", (chunk) => {
+        socket.emit("terminal:output", cleanOutput(chunk.toString()));
+      });
+
+      socket.on("terminal:input", (command: string) => {
+        stdin.write(command);
+      });
+
+      // execInPod({
+      //   namespace,
+      //   podName,
+      //   containerName: "nodejs-container",
+      //   command: ["/bin/sh", "-c", command],
+      //   cols: 80,
+      //   rows: 30,
+      // }).then((ptyProcess) => {
+      //   // Send terminal output to the frontend
+      //   ptyProcess.onData((data: string) => {
+      //     socket.emit("terminal:output", data);
+      //   });
+
+      //   // Listen for input from the frontend
+      //   socket.on("terminal:input", (command: string) => {
+      //     console.log("terminal:input", command);
+      //     ptyProcess.write(command);
+      //   });
+
+      //   // Handle terminal resize
+      //   socket.on("resize", (size: { cols: number; rows: number }) => {
+      //     ptyProcess.resize(size.cols, size.rows);
+      //   });
+
+      //   // Clean up on disconnect
+      //   socket.on("disconnect", () => {
+      //     logger.info({ socketId: socket.id }, "client disconnected");
+      //     ptyProcess.kill();
+      //     console.log("User disconnected");
+      //   });
+
+      // Kubernetes exec call
+      k8sExec.exec(
+        namespace, // namespace
+        podName, // pod name
+        "nodejs-container", // container name
+        ["/bin/sh"], // command
+        stdout, // stdout
+        null, // stderr
+        stdin, // stdin
+        true, // tty enabled
+        (status: V1Status) => {
+          if (status && status.status === "Failure") {
+            console.log("Exec failed:", status.message);
+          }
+        }
       );
     });
 
-    socket.on("disconnect", () => {
-      logger.info({ socketId: socket.id }, "client disconnected");
+    socket.on("files:changed", (data) => {
+      console.log("event: files:changed", data);
     });
   });
 

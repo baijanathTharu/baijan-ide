@@ -85,6 +85,45 @@ async function initServer() {
   app.post("/workspace/create", async (req, res, next) => {
     const userId = req.query.userId as string;
 
+    const persistentVolume = {
+      apiVersion: "v1",
+      kind: "PersistentVolume",
+      metadata: {
+        name: `pv-workspace-${userId}`,
+      },
+      spec: {
+        capacity: {
+          storage: "3Gi",
+        },
+        accessModes: ["ReadWriteOnce"],
+        persistentVolumeReclaimPolicy: "Delete",
+        storageClassName: "manual",
+        hostPath: {
+          path: `/run/desktop/mnt/host/c/Users/Baijan/ide/${userId}`,
+          type: "DirectoryOrCreate",
+        },
+      },
+    };
+
+    // PersistentVolumeClaim spec
+    const persistentVolumeClaim = {
+      apiVersion: "v1",
+      kind: "PersistentVolumeClaim",
+      metadata: {
+        name: `pvc-workspace-${userId}`,
+      },
+      spec: {
+        accessModes: ["ReadWriteOnce"],
+        storageClassName: "manual",
+        resources: {
+          requests: {
+            storage: "3Gi",
+          },
+        },
+      },
+    };
+
+    // Pod spec with PVC mounted
     const podSpec = {
       apiVersion: "v1",
       kind: "Pod",
@@ -99,6 +138,21 @@ async function initServer() {
             image: "node:18-alpine",
             ports: [{ containerPort: 3000 }],
             command: ["sh", "-c", "while true; do sleep 30; done"],
+            volumeMounts: [
+              {
+                name: "workspace-volume",
+                mountPath: "/workspace",
+              },
+            ],
+          },
+        ],
+        volumes: [
+          {
+            name: "workspace-volume",
+            hostPath: {
+              path: `/var/lib/docker/volumes/ide/_data/${userId}`,
+              type: "DirectoryOrCreate",
+            },
           },
         ],
       },
@@ -125,6 +179,26 @@ async function initServer() {
       },
     };
 
+    // try {
+    //   const pvResponse = await k8sApi.createPersistentVolume(persistentVolume);
+
+    //   if (pvResponse && pvResponse.body.metadata?.name) {
+    //     console.log("PersistentVolume created:", pvResponse.body.metadata.name);
+    //   }
+    //   // Create the PersistentVolumeClaim first
+    //   const pvcResponse = await k8sApi.createNamespacedPersistentVolumeClaim(
+    //     "default", // Namespace where the PVC will be created
+    //     persistentVolumeClaim
+    //   );
+    //   if (pvcResponse && pvcResponse.body.metadata?.name) {
+    //     console.log("PVC created:", pvcResponse.body.metadata.name);
+    //   }
+    // } catch (err) {
+    //   console.error("Error creating PVC or Pod:", err);
+    //   res.status(500).json({ error: "Failed to create workspace" });
+    //   return;
+    // }
+
     try {
       // Create the Pod
       await k8sApi.createNamespacedPod("default", podSpec);
@@ -141,6 +215,8 @@ async function initServer() {
       }
 
       const nodePort = serviceResponse.body.spec.ports[0].nodePort;
+
+      console.log("NodePort:", nodePort);
 
       // Store the NodePort so the frontend can proxy to it
       userWorkspaces[userId] = { nodePort };
@@ -164,7 +240,7 @@ async function initServer() {
     const workspace = userWorkspaces[userId];
 
     if (workspace && workspace.nodePort) {
-      const minikubeIp = "minikube"; // Minikube host
+      const minikubeIp = "192.168.49.2"; // Minikube host
       const nodePort = workspace.nodePort;
 
       const proxy = createProxyMiddleware({
