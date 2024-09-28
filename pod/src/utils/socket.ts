@@ -1,7 +1,7 @@
 import { appendFileSync } from "fs";
 import { io } from "socket.io-client";
 
-const url = process.env.MAIN_SERVER_URL || "";
+const url = "ws://baijan-ide-backend-service.default.svc.cluster.local:4000"; // get from env
 
 appendFileSync("debug.log", `MAIN_SERVER_URL: ${url}\n`, "utf-8");
 

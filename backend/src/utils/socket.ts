@@ -2,7 +2,7 @@ import { Server } from "socket.io";
 import http from "http";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { logger } from "./logger";
-import { execInPod, k8sExec } from "./kubeconfig";
+import { k8sExec } from "./kubeconfig";
 import { V1Status } from "@kubernetes/client-node";
 import { PassThrough } from "stream";
 

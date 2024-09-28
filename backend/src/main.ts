@@ -128,44 +128,22 @@ async function initServer() {
       apiVersion: "v1",
       kind: "Pod",
       metadata: {
-        name: `workspace-pod-${userId}`,
-        labels: { user: userId },
+        name: `baijan-ide-pod-${userId}`,
+        labels: {
+          app: `baijan-ide-pod-${userId}`,
+        },
       },
       spec: {
-        hostNetwork: true,
         containers: [
           {
             name: "nodejs-container",
-            image: "baijan/pod-ide:latest",
+            image: "baijan/baijan-ide-pod:latest",
             ports: [{ containerPort: 3000 }],
             command: ["node", "/app/dist/main.js"],
-            volumeMounts: [
-              {
-                name: "workspace-volume",
-                mountPath: "/workspace",
-              },
-            ],
-            environment: [
-              {
-                name: "PORT",
-                value: "3000",
-              },
-              {
-                name: "MAIN_SERVER_URL",
-                value: "http://localhost:4000",
-              },
-            ],
           },
         ],
-        volumes: [
-          {
-            name: "workspace-volume",
-            hostPath: {
-              path: `/var/lib/docker/volumes/ide/_data/${userId}`,
-              type: "DirectoryOrCreate",
-            },
-          },
-        ],
+
+        dnsPolicy: "ClusterFirst",
       },
     };
 
@@ -173,11 +151,11 @@ async function initServer() {
       apiVersion: "v1",
       kind: "Service",
       metadata: {
-        name: `workspace-service-${userId}`,
+        name: `baijan-ide-pod-service-${userId}`,
       },
       spec: {
         selector: {
-          user: userId, // This label matches the pod
+          app: `baijan-ide-pod-${userId}`, // Select pods with the label
         },
         ports: [
           {
@@ -186,7 +164,7 @@ async function initServer() {
             targetPort: 3000,
           },
         ],
-        type: "NodePort", // This exposes the service via a NodePort
+        type: "ClusterIP", // This exposes the service via a NodePort
       },
     };
 
@@ -247,31 +225,22 @@ async function initServer() {
    * 2. Proxy frontend requests to the Kubernetes pod
    */
   app.use("/workspace/:userId", (req, res, next) => {
+    const userId = req.params.userId;
+
+    if (!userId) {
+      res.status(404).json({ error: "userId not found" });
+      return;
+    }
+
+    const target = `http://baijan-ide-pod-service-${userId}.default.svc.cluster.local:3000`;
+    console.log("target", target);
+
     const proxy = createProxyMiddleware({
-      // target: `http://${minikubeIp}:${nodePort}`,
-      target: `http://127.0.0.1:37085`,
+      target: target,
       changeOrigin: true,
     });
 
     return proxy(req, res, next);
-
-    // const userId = req.params.userId;
-    // const workspace = userWorkspaces[userId];
-
-    // if (workspace && workspace.nodePort) {
-    //   const minikubeIp = "192.168.49.2"; // Minikube host
-    //   const nodePort = workspace.nodePort;
-
-    //   const proxy = createProxyMiddleware({
-    //     // target: `http://${minikubeIp}:${nodePort}`,
-    //     target: `http://127.0.0.1:333799`,
-    //     changeOrigin: true,
-    //   });
-
-    //   return proxy(req, res, next);
-    // } else {
-    //   return res.status(404).json({ error: "Workspace not found" });
-    // }
   });
 
   app.use((error: any, req: Request, res: Response, next: NextFunction) => {
@@ -282,7 +251,7 @@ async function initServer() {
     res.sendStatus(500);
   });
 
-  server.listen(env.PORT, () => {
+  server.listen(env.PORT, "0.0.0.0", () => {
     console.log(`[ ready ] http://localhost:${env.PORT}`);
   });
 

@@ -5,26 +5,23 @@ This is the container that will be assigned to user when they request for a work
 ## Build the image
 
 ```bash
-docker build -t pod .
+docker build -t baijan-ide-pod .
 ```
 
 ### Tag the image to push to dockerhub
 
 ```bash
-docker tag pod:latest baijan/pod-ide:latest
+docker tag baijan-ide-pod:latest baijan/baijan-ide-pod:latest
 ```
 
 ### Push the image to dockerhub
 
 ```bash
-docker push baijan/pod-ide:latest
+docker push baijan/baijan-ide-pod:latest
 ```
 
-## To send request to the pod
+## Accessing the backend
 
-Start the service before sending request to the pod
-
-```bash
-minikube service workspace-service-123 --url
-
+```
+curl http://baijan-ide-backend-service.default.svc.cluster.local:4000/ping
 ```
