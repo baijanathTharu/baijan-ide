@@ -132,12 +132,13 @@ async function initServer() {
         labels: { user: userId },
       },
       spec: {
+        hostNetwork: true,
         containers: [
           {
             name: "nodejs-container",
-            image: "node:18-alpine",
+            image: "baijan/pod-ide:latest",
             ports: [{ containerPort: 3000 }],
-            command: ["sh", "-c", "while true; do sleep 30; done"],
+            command: ["node", "/app/dist/main.js"],
             volumeMounts: [
               {
                 name: "workspace-volume",
@@ -151,7 +152,7 @@ async function initServer() {
               },
               {
                 name: "MAIN_SERVER_URL",
-                value: "http://localhost:4001",
+                value: "http://localhost:4000",
               },
             ],
           },
@@ -246,22 +247,31 @@ async function initServer() {
    * 2. Proxy frontend requests to the Kubernetes pod
    */
   app.use("/workspace/:userId", (req, res, next) => {
-    const userId = req.params.userId;
-    const workspace = userWorkspaces[userId];
+    const proxy = createProxyMiddleware({
+      // target: `http://${minikubeIp}:${nodePort}`,
+      target: `http://127.0.0.1:37085`,
+      changeOrigin: true,
+    });
 
-    if (workspace && workspace.nodePort) {
-      const minikubeIp = "192.168.49.2"; // Minikube host
-      const nodePort = workspace.nodePort;
+    return proxy(req, res, next);
 
-      const proxy = createProxyMiddleware({
-        target: `http://${minikubeIp}:${nodePort}`,
-        changeOrigin: true,
-      });
+    // const userId = req.params.userId;
+    // const workspace = userWorkspaces[userId];
 
-      return proxy(req, res, next);
-    } else {
-      return res.status(404).json({ error: "Workspace not found" });
-    }
+    // if (workspace && workspace.nodePort) {
+    //   const minikubeIp = "192.168.49.2"; // Minikube host
+    //   const nodePort = workspace.nodePort;
+
+    //   const proxy = createProxyMiddleware({
+    //     // target: `http://${minikubeIp}:${nodePort}`,
+    //     target: `http://127.0.0.1:333799`,
+    //     changeOrigin: true,
+    //   });
+
+    //   return proxy(req, res, next);
+    // } else {
+    //   return res.status(404).json({ error: "Workspace not found" });
+    // }
   });
 
   app.use((error: any, req: Request, res: Response, next: NextFunction) => {

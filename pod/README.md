@@ -19,3 +19,12 @@ docker tag pod:latest baijan/pod-ide:latest
 ```bash
 docker push baijan/pod-ide:latest
 ```
+
+## To send request to the pod
+
+Start the service before sending request to the pod
+
+```bash
+minikube service workspace-service-123 --url
+
+```

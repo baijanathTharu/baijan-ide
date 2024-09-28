@@ -5,6 +5,7 @@ import helmet from "helmet";
 import compression from "compression";
 import { randomUUID } from "crypto";
 import { socket } from "./utils/socket";
+import { appendFile, appendFileSync, writeFile } from "fs";
 
 async function initServer() {
   const app = express();
@@ -65,6 +66,12 @@ async function initServer() {
 
   app.get("/files", async (req, res, next) => {
     try {
+      appendFileSync(
+        "debug.log",
+        `files req.requestId: ${req.requestId}\n`,
+        "utf-8"
+      );
+
       socket.emit(
         "files:changed",
         JSON.stringify({
