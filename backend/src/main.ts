@@ -251,7 +251,7 @@ async function initServer() {
     res.sendStatus(500);
   });
 
-  server.listen(env.PORT, "0.0.0.0", () => {
+  server.listen(env.PORT, () => {
     console.log(`[ ready ] http://localhost:${env.PORT}`);
   });
 
@@ -272,6 +272,10 @@ async function initServer() {
 
   process.on("SIGTERM", shutDown);
   process.on("SIGINT", shutDown);
+
+  process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  });
 }
 
 initServer().catch((e) => {

@@ -4,8 +4,12 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import { randomUUID } from "crypto";
-import { socket } from "./utils/socket";
+import chokidar from "chokidar";
 import { appendFile, appendFileSync, writeFile } from "fs";
+
+import { initWS } from "./utils/socket";
+
+const port = process.env.PORT || 4001;
 
 async function initServer() {
   const app = express();
@@ -13,6 +17,8 @@ async function initServer() {
 
   app.use(compression());
   app.use(helmet());
+
+  const io = initWS(server);
 
   app.use(
     cors({
@@ -72,13 +78,6 @@ async function initServer() {
         "utf-8"
       );
 
-      socket.emit(
-        "files:changed",
-        JSON.stringify({
-          message: "I will send some files here",
-        })
-      );
-
       res.json({
         message: "I will send files",
       });
@@ -96,8 +95,21 @@ async function initServer() {
     res.sendStatus(500);
   });
 
-  server.listen(3000, () => {
-    console.log(`[ ready ] http://localhost:3000`);
+  const watcher = chokidar.watch("users", {
+    ignored: /(^|[\/\\])\..|node_modules/, // Ignore dotfiles and node_modules
+    persistent: true,
+  });
+
+  watcher.on("all", (event, path) => {
+    console.log(`File changed ${event}: ${path}`);
+    io.emit("files:changed", {
+      event,
+      path,
+    });
+  });
+
+  server.listen(port, () => {
+    console.log(`[ ready ] http://localhost${port}`);
   });
 
   async function shutDown() {

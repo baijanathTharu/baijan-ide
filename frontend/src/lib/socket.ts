@@ -11,10 +11,12 @@ export function useSocket() {
 
   useEffect(() => {
     function onConnect() {
+      console.log("socket connected");
       setIsConnected(true);
     }
 
     function onDisconnect() {
+      console.log("socket disconnected");
       setIsConnected(false);
     }
 

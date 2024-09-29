@@ -155,6 +155,92 @@ const FileTreeComponent: React.FC<{
   );
 };
 
+function cleanAnsi(input: string) {
+  // Regular expression to match ANSI escape sequences
+  // eslint-disable-next-line no-control-regex
+  const ansiRegex = /\x1B\[[0-?9;]*[mK]/g;
+  return input.replace(ansiRegex, "");
+}
+
+function MyXTerm() {
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const termRef = useRef<XTerm | null>(null);
+  const { socket } = useSocket();
+
+  const commandRef = useRef("");
+
+  useEffect(() => {
+    socket.on("client:terminal_output", (data) => {
+      if (termRef.current) {
+        console.log("client:terminal_output:", data);
+
+        termRef.current.writeln(data);
+        termRef.current.scrollToBottom();
+      }
+    });
+
+    return () => {
+      socket.off("client:terminal_output");
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    console.log("render: init terminal");
+    // Initialize terminal only if it hasn't been initialized yet
+    if (!termRef.current) {
+      const term = new XTerm({
+        theme: {
+          background: "#1e1e1e",
+          foreground: "#cccccc",
+        },
+        fontSize: 14,
+        fontFamily: 'Consolas, "Courier New", monospace',
+        cursorBlink: true,
+      });
+
+      termRef.current = term;
+
+      if (terminalRef.current) {
+        term.open(terminalRef.current);
+        term.writeln("\x1b[1;34m$\x1b[0m Welcome to the terminal!");
+        console.log("Terminal opened");
+
+        term.onData((data) => {
+          console.log("data:", data);
+
+          if (data === "\r") {
+            // If Enter is pressed
+            console.log(
+              "Enter pressed, sending command:",
+              `${commandRef.current}`
+            );
+            socket.emit("client:terminal_input", `${commandRef.current}`);
+            term.writeln("\x1b[1;34m$\x1b[0m "); // Display prompt again
+            commandRef.current = ""; // Clear the buffer after sending
+          } else if (data === "\x08" || data === "\x7f") {
+            // If Backspace is pressed
+            commandRef.current = commandRef.current.slice(0, -1); // Remove the last character from the buffer
+            term.write("\b \b"); // Move back, write a space, and move back again to clear the character visually
+          } else {
+            commandRef.current += data; // Append the input to the buffer
+            term.write(data); // Write the character to the terminal
+          }
+        });
+      }
+    }
+
+    return () => {
+      if (termRef.current) {
+        console.log("Terminal disposed");
+        termRef.current.dispose();
+        termRef.current = null; // Clean up the reference
+      }
+    };
+  }, []);
+
+  return <div ref={terminalRef} className="h-full" />;
+}
+
 export function VSCode() {
   const [fileTree] = useState<FileTreeItem[]>(initialFileTree);
   const [activeFile, setActiveFile] = useState<FileTreeItem | null>(null);
@@ -166,141 +252,6 @@ export function VSCode() {
   const [isDragging, setIsDragging] = useState(false);
   const [editor, setEditor] =
     useState<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const { socket } = useSocket();
-
-  const terminalRef = useRef<HTMLDivElement>(null);
-  const termRef = useRef<XTerm | null>(null);
-  const fitAddonRef = useRef<FitAddon | null>(null);
-  const [isTerminalReady, setIsTerminalReady] = useState(false);
-  const commandBufferRef = useRef<string>(""); // Ref to store command buffer
-
-  const handleTerminalInput = useCallback(
-    (data: string) => {
-      console.log("render: input ", data);
-
-      socket.emit("terminal:input", data);
-    },
-    [socket]
-  );
-
-  const handleTerminalOutput = useCallback((data: string) => {
-    console.log("render: output", data);
-    termRef.current?.writeln(data);
-  }, []);
-
-  useEffect(() => {
-    socket.emit("terminal:ready", {
-      userId: "123",
-    });
-
-    return () => {
-      socket.off("terminal:ready");
-    };
-  }, []);
-
-  useEffect(() => {
-    console.log("render: init terminal");
-    const term = new XTerm({
-      theme: {
-        background: "#1e1e1e",
-        foreground: "#cccccc",
-      },
-      fontSize: 14,
-      fontFamily: 'Consolas, "Courier New", monospace',
-      cursorBlink: true,
-    });
-    termRef.current = term;
-
-    const fitAddon = new FitAddon();
-    fitAddonRef.current = fitAddon;
-    term.loadAddon(fitAddon);
-
-    if (terminalRef.current) {
-      term.open(terminalRef.current);
-      fitAddon.fit();
-      term.writeln("\x1b[1;34m$\x1b[0m Welcome to the terminal!");
-      console.log("Terminal opened");
-
-      // term.attachCustomKeyEventHandler((event) => {
-      //   console.log("render: key event", event.key);
-
-      //   // if (event.key.toLowerCase() === "enter") {
-      //   //   term.write("\r\n"); // Move to a new line and reset cursor to the start
-      //   // }
-
-      //   // if (event.key.toLowerCase() === "backspace") {
-      //   //   setCommand((command) => {
-      //   //     if (command.length > 0) {
-      //   //       return command.slice(0, -1);
-      //   //     }
-      //   //     return command;
-      //   //   });
-
-      //   //   return;
-      //   // }
-      //   // setCommand((command) => command + event.key);
-      // });
-
-      term.onKey(({ key, domEvent }) => {
-        if (domEvent.key === "Enter") {
-          handleTerminalInput(commandBufferRef.current + "\r"); // Send full command on Enter
-          commandBufferRef.current = ""; // Clear the buffer
-          term.write("\r\n"); // Move to the next line in the terminal
-        } else if (domEvent.key === "Backspace") {
-          if (commandBufferRef.current.length > 0) {
-            commandBufferRef.current = commandBufferRef.current.slice(0, -1); // Remove last character from the buffer
-            term.write("\b \b"); // Erase character visually in the terminal
-          }
-        } else {
-          commandBufferRef.current += key; // Append key to the buffer
-          term.write(key); // Echo key to terminal display
-        }
-      });
-
-      // term.onData(handleTerminalInput);
-
-      setIsTerminalReady(true);
-    }
-
-    const resizeObserver = new ResizeObserver(() => {
-      fitAddon.fit();
-    });
-
-    if (terminalRef.current) {
-      resizeObserver.observe(terminalRef.current);
-    }
-
-    return () => {
-      console.log("Terminal disposed");
-      term.dispose();
-      resizeObserver.disconnect();
-    };
-  }, [handleTerminalInput]);
-
-  useEffect(() => {
-    if (isTerminalReady) {
-      console.log("render: init socket listeners");
-
-      socket.on("terminal:output", handleTerminalOutput);
-
-      return () => {
-        console.log("render: dispose socket listeners");
-        socket.off("terminal:output", handleTerminalOutput);
-      };
-    }
-  }, [isTerminalReady, handleTerminalOutput, socket]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      fitAddonRef.current?.fit();
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   // useEffect(() => {
   //   const term = new XTerm({
@@ -476,7 +427,7 @@ export function VSCode() {
         >
           <Card className="h-full rounded-none bg-[#1e1e1e]">
             <CardBody className="p-0">
-              <div ref={terminalRef} className="h-full" />
+              <MyXTerm />
             </CardBody>
           </Card>
         </div>
