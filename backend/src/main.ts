@@ -81,8 +81,26 @@ async function initServer() {
 
     next();
   });
+  app.use("/ws/workspace/:userId", (req, res, next) => {
+    const userId = req.params.userId;
 
-  // app.use(proxy);
+    if (!userId) {
+      res.status(404).json({ error: "userId not found" });
+      return;
+    }
+
+    // const target = `http://baijan-ide-pod-service-${userId}.default.svc.cluster.local:3000`;
+    const target = `http://localhost:4001`;
+    console.log("target", target);
+
+    const proxy = createProxyMiddleware({
+      target: target,
+      changeOrigin: true,
+      ws: true,
+    });
+
+    return proxy(req, res, next);
+  });
 
   app.get("/ping", async (req, res, next) => {
     res.status(200).send("BACKEND is running...");
@@ -250,7 +268,6 @@ async function initServer() {
     const proxy = createProxyMiddleware({
       target: target,
       changeOrigin: true,
-      ws: true,
     });
 
     return proxy(req, res, next);

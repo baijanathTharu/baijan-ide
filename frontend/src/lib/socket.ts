@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { env } from "./config";
+// import { env } from "./config";
 // import { io } from "socket.io-client";
 // import WebSocket from "ws";
 // import { WebSocket } from "http";
 
-const URL = `${env.VITE_BACKEND_URL}/workspace/123`;
-console.log("url", URL);
+// const URL = `${env.VITE_BACKEND_URL}/ws/workspace/123`;
+// console.log("url", URL);
 
 // export const socket = io(URL);
 
@@ -38,7 +38,7 @@ console.log("url", URL);
 //   };
 // }
 
-const socket = new WebSocket("ws://localhost:4000/workspace/123");
+const socket = new WebSocket("ws://localhost:4000/ws/workspace/123");
 
 export function useSocket(
   onMessage: (data: { type: string; payload: any }) => void

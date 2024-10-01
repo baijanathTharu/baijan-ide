@@ -246,7 +246,7 @@ function MyXTerm() {
 }
 
 export function VSCode() {
-  const [fileTree] = useState<FileTreeItem[]>(initialFileTree);
+  const [fileTree, setFileTree] = useState<FileTreeItem[]>(initialFileTree);
   const [activeFile, setActiveFile] = useState<FileTreeItem | null>(null);
   const [fileContents, setFileContents] = useState<{ [key: string]: string }>(
     {}
@@ -272,6 +272,17 @@ export function VSCode() {
       };
     }
   }, [editor]);
+
+  useEffect(() => {
+    fetch(`http://localhost:4000/workspace/123/files`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("data", data);
+        const files = data.files as FileTreeItem[];
+        setFileTree(files);
+      })
+      .catch((err) => console.log(err));
+  }, []);
 
   const handleFileSelect = (file: FileTreeItem) => {
     if (file.type === "file") {
