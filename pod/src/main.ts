@@ -28,6 +28,61 @@ import("node-pty").then((pty) => {
   });
 });
 
+type FileTreeItem =
+  | {
+      id: string;
+      name: string;
+      type: "folder";
+      children: FileTreeItem[];
+    }
+  | {
+      id: string;
+      name: string;
+      type: "file";
+      path: string;
+    };
+
+async function recursiveBuildTree(dir: string) {
+  let fileTree: Record<string, any> = {};
+
+  const files = await readdir(dir);
+
+  for (const file of files) {
+    const filePath = `${dir}/${file}`;
+    const fileStat = await stat(filePath);
+    if (fileStat.isDirectory()) {
+      fileTree[file] = await recursiveBuildTree(filePath);
+    } else {
+      fileTree[file] = filePath;
+    }
+  }
+
+  return fileTree;
+}
+
+function convertTreeToArray(tree: any, parentId = ""): FileTreeItem[] {
+  return Object.entries(tree).map(([key, value]) => {
+    const isFolder = typeof value === "object" && !Array.isArray(value);
+    const id = parentId ? `${parentId}/${key}` : key;
+
+    if (isFolder) {
+      return {
+        id,
+        name: key,
+        type: "folder",
+        children: convertTreeToArray(value, id),
+      } as FileTreeItem;
+    } else {
+      return {
+        id,
+        name: key,
+        type: "file",
+        path: value,
+      } as FileTreeItem;
+    }
+  });
+}
+
 async function initServer() {
   const app = express();
   const server = http.createServer(app);
@@ -145,28 +200,12 @@ async function initServer() {
       const dir = join(process.cwd(), "users");
       console.log("cwd", process.cwd());
 
-      async function recursiveBuildTree(dir: string) {
-        let fileTree: Record<string, any> = {};
-
-        const files = await readdir(dir);
-
-        for (const file of files) {
-          const filePath = `${dir}/${file}`;
-          const fileStat = await stat(filePath);
-          if (fileStat.isDirectory()) {
-            fileTree[file] = await recursiveBuildTree(filePath);
-          } else {
-            fileTree[file] = filePath;
-          }
-        }
-
-        return fileTree;
-      }
-
       const tree = await recursiveBuildTree(dir);
 
+      const result = convertTreeToArray(tree);
+
       res.json({
-        tree,
+        files: result,
       });
     } catch (error) {
       console.error(error);
