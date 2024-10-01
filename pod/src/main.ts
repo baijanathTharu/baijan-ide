@@ -7,9 +7,26 @@ import { randomUUID } from "crypto";
 import chokidar from "chokidar";
 import { appendFile, appendFileSync, writeFile } from "fs";
 
+import { WebSocketServer } from "ws";
+
 import { initWS } from "./utils/socket";
+import { IPty } from "node-pty";
+import { readdir, stat } from "fs/promises";
+import { join } from "path";
 
 const port = process.env.PORT || 4001;
+
+let ptyProcess: IPty | undefined;
+
+import("node-pty").then((pty) => {
+  ptyProcess = pty.spawn("/bin/bash", [], {
+    name: "xterm-color",
+    cols: 80,
+    rows: 30,
+    cwd: "/home/baijan/personal/projects/baijan-ide/pod",
+    env: process.env,
+  });
+});
 
 async function initServer() {
   const app = express();
@@ -18,7 +35,52 @@ async function initServer() {
   app.use(compression());
   app.use(helmet());
 
-  const io = initWS(server);
+  // const io = initWS(server);
+
+  // websocket
+  const wss = new WebSocketServer({ server });
+
+  wss.on("connection", function connection(ws) {
+    ws.on("error", console.error);
+
+    ws.on("message", function message(data) {
+      const parsedData = JSON.parse(data.toString()) as {
+        type: string;
+        payload: any;
+      };
+      const type = parsedData.type;
+      const payload = parsedData.payload;
+      console.log("parsedData", parsedData);
+
+      if (ptyProcess) {
+        if (type === "pod:terminal_input") {
+          console.log("pod:terminal_ready received", payload);
+          ptyProcess.write(`${parsedData.payload}\n`);
+        }
+
+        ptyProcess.onData((d) => {
+          console.log("ptyProcess data received", d);
+
+          console.log("pod:terminal_output emitted", d);
+
+          ws.send(
+            JSON.stringify({
+              type: "pod:terminal_output",
+              payload: d.toString(),
+            })
+          );
+        });
+      }
+    });
+
+    ws.send(
+      JSON.stringify({
+        type: "ping",
+        payload: "pong",
+      })
+    );
+  });
+  // websocket
 
   app.use(
     cors({
@@ -78,8 +140,33 @@ async function initServer() {
         "utf-8"
       );
 
+      // create a file tree by reading the users directory
+
+      const dir = join(process.cwd(), "users");
+      console.log("cwd", process.cwd());
+
+      async function recursiveBuildTree(dir: string) {
+        let fileTree: Record<string, any> = {};
+
+        const files = await readdir(dir);
+
+        for (const file of files) {
+          const filePath = `${dir}/${file}`;
+          const fileStat = await stat(filePath);
+          if (fileStat.isDirectory()) {
+            fileTree[file] = await recursiveBuildTree(filePath);
+          } else {
+            fileTree[file] = filePath;
+          }
+        }
+
+        return fileTree;
+      }
+
+      const tree = await recursiveBuildTree(dir);
+
       res.json({
-        message: "I will send files",
+        tree,
       });
     } catch (error) {
       console.error(error);
@@ -102,10 +189,10 @@ async function initServer() {
 
   watcher.on("all", (event, path) => {
     console.log(`File changed ${event}: ${path}`);
-    io.emit("files:changed", {
-      event,
-      path,
-    });
+    // io.emit("files:changed", {
+    //   event,
+    //   path,
+    // });
   });
 
   server.listen(port, () => {

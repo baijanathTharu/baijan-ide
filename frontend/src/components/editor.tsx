@@ -155,34 +155,32 @@ const FileTreeComponent: React.FC<{
   );
 };
 
-function cleanAnsi(input: string) {
-  // Regular expression to match ANSI escape sequences
-  // eslint-disable-next-line no-control-regex
-  const ansiRegex = /\x1B\[[0-?9;]*[mK]/g;
-  return input.replace(ansiRegex, "");
-}
-
 function MyXTerm() {
   const terminalRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<XTerm | null>(null);
-  const { socket } = useSocket();
 
-  const commandRef = useRef("");
+  function onMessage(data: { type: string; payload: any }) {
+    console.log("onMessage:", data);
 
-  useEffect(() => {
-    socket.on("client:terminal_output", (data) => {
+    if (data.type === "pod:terminal_output") {
       if (termRef.current) {
         console.log("client:terminal_output:", data);
 
-        termRef.current.writeln(data);
+        termRef.current.writeln(data.payload);
         termRef.current.scrollToBottom();
       }
-    });
+    }
 
-    return () => {
-      socket.off("client:terminal_output");
-    };
-  }, [socket]);
+    if (data.type === "pod:terminal_input") {
+      if (termRef.current) {
+        termRef.current.write(data.payload);
+      }
+    }
+  }
+
+  const { socket } = useSocket(onMessage);
+
+  const commandRef = useRef("");
 
   useEffect(() => {
     console.log("render: init terminal");
@@ -214,7 +212,13 @@ function MyXTerm() {
               "Enter pressed, sending command:",
               `${commandRef.current}`
             );
-            socket.emit("client:terminal_input", `${commandRef.current}`);
+            // socket.("pod:terminal_input", `${commandRef.current}`);
+            socket.send(
+              JSON.stringify({
+                type: "pod:terminal_input",
+                payload: `${commandRef.current}`,
+              })
+            );
             term.writeln("\x1b[1;34m$\x1b[0m "); // Display prompt again
             commandRef.current = ""; // Clear the buffer after sending
           } else if (data === "\x08" || data === "\x7f") {
@@ -252,63 +256,6 @@ export function VSCode() {
   const [isDragging, setIsDragging] = useState(false);
   const [editor, setEditor] =
     useState<monaco.editor.IStandaloneCodeEditor | null>(null);
-
-  // useEffect(() => {
-  //   const term = new XTerm({
-  //     theme: {
-  //       background: "#1e1e1e",
-  //       foreground: "#cccccc",
-  //     },
-  //     fontSize: 14,
-  //     fontFamily: 'Consolas, "Courier New", monospace',
-  //     cursorBlink: true,
-  //   });
-  //   if (!terminalRendered.current) {
-  //     terminalRendered.current = true;
-  //     if (terminalRef.current) {
-  //       term.open(terminalRef.current);
-  //     }
-  //     return;
-  //   }
-
-  //   const fitAddon = new FitAddon();
-  //   term.loadAddon(fitAddon);
-  //   fitAddon.fit();
-
-  //   const resizeObserver = new ResizeObserver(() => {
-  //     fitAddon.fit();
-  //   });
-
-  //   if (terminalRef.current) {
-  //     term.writeln("\x1b[1;34m$\x1b[0m Welcome to the terminal!");
-  //     console.log("written");
-
-  //     term.open(terminalRef.current);
-  //     console.log("opened");
-  //     resizeObserver.observe(terminalRef.current);
-
-  //     socket.on("terminal:output", (data) => {
-  //       console.log("got data from server", data);
-
-  //       term.writeln(data);
-  //     });
-
-  //     term.onData((data) => {
-  //       console.log("data", data);
-
-  //       socket.emit("terminal:input", {
-  //         userId: "123",
-  //         command: data,
-  //       });
-  //     });
-  //   }
-
-  //   return () => {
-  //     console.log("disposed..");
-  //     term.dispose();
-  //     resizeObserver.disconnect();
-  //   };
-  // }, []);
 
   useEffect(() => {
     if (editorRef.current && !editor) {

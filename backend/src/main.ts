@@ -18,11 +18,20 @@ import { env } from "./utils/config";
 import { kc } from "./utils/kubeconfig";
 import { CoreV1Api } from "@kubernetes/client-node";
 
+const target = `http://localhost:4000`;
+console.log("target", target);
+
+// const proxy = createProxyMiddleware({
+//   target: target,
+//   changeOrigin: true,
+//   ws: true,
+// });
+
 async function initServer() {
   const app = express();
   const server = http.createServer(app);
 
-  const io = initWS(server);
+  // const io = initWS(server);
 
   app.use(compression());
   app.use(helmet());
@@ -72,6 +81,8 @@ async function initServer() {
 
     next();
   });
+
+  // app.use(proxy);
 
   app.get("/ping", async (req, res, next) => {
     res.status(200).send("BACKEND is running...");
@@ -232,12 +243,14 @@ async function initServer() {
       return;
     }
 
-    const target = `http://baijan-ide-pod-service-${userId}.default.svc.cluster.local:3000`;
+    // const target = `http://baijan-ide-pod-service-${userId}.default.svc.cluster.local:3000`;
+    const target = `http://localhost:4001`;
     console.log("target", target);
 
     const proxy = createProxyMiddleware({
       target: target,
       changeOrigin: true,
+      ws: true,
     });
 
     return proxy(req, res, next);
