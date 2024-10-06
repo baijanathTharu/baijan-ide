@@ -23,7 +23,7 @@ import("node-pty").then((pty) => {
     name: "xterm-color",
     cols: 80,
     rows: 30,
-    cwd: "/home/baijan/personal/projects/baijan-ide/pod",
+    cwd: "/home",
     env: process.env,
   });
 });
