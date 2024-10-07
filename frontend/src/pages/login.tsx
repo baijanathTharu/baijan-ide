@@ -210,9 +210,11 @@ export const LoginPage = () => {
                 />
               )}
             </div>
-            <Button color="primary" size="lg" className="text-lg">
-              Log In
-            </Button>
+            <a href="/" className="w-full">
+              <Button color="primary" size="lg" className="text-lg w-full">
+                Log In
+              </Button>
+            </a>
           </div>
           <span
             className="text-sm font-medium text-red-400 cursor-pointer hover:underline"
