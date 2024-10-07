@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
+    "@nextui-org/modal": "^2.0.41",
     "@nextui-org/react": "^2.4.8",
     "@xterm/xterm": "^5.5.0",
     "framer-motion": "^11.5.6",
