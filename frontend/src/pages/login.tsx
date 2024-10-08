@@ -73,18 +73,21 @@ const ForgotPasswordModal = ({
               type={isNewPasswordVisible ? "text" : "password"}
               label="Password"
               size="lg"
+              endContent={
+                <button
+                  className="focus:outline-none"
+                  type="button"
+                  onClick={toggleNewPasswordVisible}
+                  aria-label="toggle password visibility"
+                >
+                  {isNewPasswordVisible ? (
+                    <EyeOffIcon className="text-2xl text-default-400 pointer-events-none mb-1" />
+                  ) : (
+                    <EyeIcon className="text-2xl text-default-400 pointer-events-none mb-1" />
+                  )}
+                </button>
+              }
             />
-            {isNewPasswordVisible ? (
-              <EyeOffIcon
-                className="absolute top-5 right-3 cursor-pointer"
-                onClick={toggleNewPasswordVisible}
-              />
-            ) : (
-              <EyeIcon
-                className="absolute top-5 right-3 cursor-pointer"
-                onClick={toggleNewPasswordVisible}
-              />
-            )}
           </div>
         </div>
         <div>
@@ -94,18 +97,21 @@ const ForgotPasswordModal = ({
               type={isConfirmPasswordVisible ? "text" : "password"}
               label="Password"
               size="lg"
+              endContent={
+                <button
+                  className="focus:outline-none"
+                  type="button"
+                  onClick={toggleConfirmPasswordVisible}
+                  aria-label="toggle password visibility"
+                >
+                  {isConfirmPasswordVisible ? (
+                    <EyeOffIcon className="text-2xl text-default-400 pointer-events-none mb-1" />
+                  ) : (
+                    <EyeIcon className="text-2xl text-default-400 pointer-events-none mb-1" />
+                  )}
+                </button>
+              }
             />
-            {isConfirmPasswordVisible ? (
-              <EyeOffIcon
-                className="absolute top-5 right-3 cursor-pointer"
-                onClick={toggleConfirmPasswordVisible}
-              />
-            ) : (
-              <EyeIcon
-                className="absolute top-5 right-3 cursor-pointer"
-                onClick={toggleConfirmPasswordVisible}
-              />
-            )}
           </div>
         </div>
         <Button
