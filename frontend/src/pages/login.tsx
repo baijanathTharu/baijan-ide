@@ -192,26 +192,27 @@ export const LoginPage = () => {
         <form className="flex flex-col items-center gap-10 w-[500px] px-6">
           <h1 className="font-medium text-2xl">Log in to your account</h1>
           <div className="flex flex-col gap-4 w-full">
-            <Input color="primary" type="email" label="Email" size="lg" />
-            <div className="relative">
-              <Input
-                color="primary"
-                type={isPasswordVisible ? "text" : "password"}
-                label="Password"
-                size="lg"
-              />
-              {isPasswordVisible ? (
-                <EyeOffIcon
-                  className="absolute top-5 right-3 cursor-pointer"
+            <Input color="default" type="email" label="Email" size="lg" />
+            <Input
+              color="default"
+              type={isPasswordVisible ? "text" : "password"}
+              label="Password"
+              size="lg"
+              endContent={
+                <button
+                  className="focus:outline-none"
+                  type="button"
                   onClick={togglePasswordVisible}
-                />
-              ) : (
-                <EyeIcon
-                  className="absolute top-5 right-3 cursor-pointer"
-                  onClick={togglePasswordVisible}
-                />
-              )}
-            </div>
+                  aria-label="toggle password visibility"
+                >
+                  {isPasswordVisible ? (
+                    <EyeOffIcon className="text-2xl text-default-400 pointer-events-none mb-1" />
+                  ) : (
+                    <EyeIcon className="text-2xl text-default-400 pointer-events-none mb-1" />
+                  )}
+                </button>
+              }
+            />
             <a href="/" className="w-full">
               <Button
                 color="primary"
