@@ -3,7 +3,7 @@ import { NextUIProvider } from "@nextui-org/react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { VSCode } from "./components/editor";
-import { SignUp } from "./components/sign-up";
+import { SignUpPage } from "./components/sign-up";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -11,7 +11,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/auth/sign-up",
-    element: <SignUp />,
+    element: <SignUpPage />,
   },
 ]);
 
