@@ -1,9 +1,10 @@
-import { Button, Input, useDisclosure } from "@nextui-org/react";
+import { Input, useDisclosure } from "@nextui-org/react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { ModalComponent } from "../components/modal";
 import { OTPInput } from "../components/otp-input";
 import { useTimer } from "../components/timer";
+import { Button } from "../components/button";
 
 type TActiveSection = "initial" | "input_otp" | "reset_password";
 
@@ -191,9 +192,10 @@ export const LoginPage = () => {
         <form className="flex flex-col items-center gap-10 w-[500px] px-6">
           <h1 className="font-medium text-2xl">Log in to your account</h1>
           <div className="flex flex-col gap-4 w-full">
-            <Input type="email" label="Email" size="lg" />
+            <Input color="primary" type="email" label="Email" size="lg" />
             <div className="relative">
               <Input
+                color="primary"
                 type={isPasswordVisible ? "text" : "password"}
                 label="Password"
                 size="lg"
@@ -211,7 +213,12 @@ export const LoginPage = () => {
               )}
             </div>
             <a href="/" className="w-full">
-              <Button color="primary" size="lg" className="text-lg w-full">
+              <Button
+                color="primary"
+                size="lg"
+                variant="solid"
+                className="text-lg w-full"
+              >
                 Log In
               </Button>
             </a>
