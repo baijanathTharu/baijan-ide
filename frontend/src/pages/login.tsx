@@ -230,12 +230,20 @@ export const LoginPage = () => {
               </Button>
             </a>
           </div>
-          <span
-            className="text-sm font-medium text-red-400 cursor-pointer hover:underline"
-            onClick={openForgotPasswordModal}
-          >
-            Forgot password?
-          </span>
+          <div className="flex items-center justify-between w-full text-sm">
+            <p>
+              New User?{" "}
+              <a className="text-red-400 hover:underline" href="/auth/sign-up">
+                Sign up
+              </a>
+            </p>
+            <span
+              className="text-red-400 cursor-pointer hover:underline"
+              onClick={openForgotPasswordModal}
+            >
+              Forgot password?
+            </span>
+          </div>
           {ForgotPasswordModalComponent}
         </form>
       </div>

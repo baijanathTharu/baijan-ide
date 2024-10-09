@@ -1,7 +1,6 @@
 import "./App.css";
 import { NextUIProvider } from "@nextui-org/react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
 import { VSCode } from "./components/editor";
 import { SignUp } from "./components/sign-up";
 import { LoginPage } from "./pages/login";
