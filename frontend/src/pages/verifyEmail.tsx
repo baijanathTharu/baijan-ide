@@ -13,9 +13,7 @@ export const VerifyEmail = () => {
             We have sent you an otp. Check your mail.
           </p>
           <div className="flex flex-col gap-4">
-            <div className="w-96">
-              <OTPInput otp={otp} setOtp={setOtp} />
-            </div>
+            <OTPInput otp={otp} setOtp={setOtp} />
 
             <Button color="primary" size="lg">
               Verify OTP
