@@ -67,7 +67,9 @@ export const OTPInput = ({ otp, setOtp }: TOTP) => {
           onChange={(e) => handleChange(e.target, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
           onPaste={handlePaste}
-          className="text-center p-2 text-lg w-12 h-12"
+          classNames={{
+            input: ["text-center"],
+          }}
           aria-label={`Digit ${index + 1} of OTP`}
           color="primary"
         />
