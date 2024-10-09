@@ -5,6 +5,7 @@ import { VSCode } from "./components/editor";
 import { SignUpPage } from "./pages/sign-up";
 import { LoginPage } from "./pages/login";
 import { VerifyEmail } from "./pages/verifyEmail";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const router = createBrowserRouter([
   {
@@ -26,9 +27,13 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+  const client = new QueryClient();
+
   return (
     <NextUIProvider>
-      <RouterProvider router={router} />
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
     </NextUIProvider>
   );
 }
