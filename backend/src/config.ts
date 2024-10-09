@@ -1,9 +1,9 @@
 type TEnv = {
-  USER: string;
-  PASS: string;
+  SMTP_USER: string;
+  SMTP_PASSWORD: string;
 };
 
 export const env = {
-  USER: process.env.USER,
-  PASS: process.env.PASS,
+  SMTP_USER: process.env.SMTP_USER,
+  SMTP_PASSWORD: process.env.SMTP_PASSWORD,
 };
