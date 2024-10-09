@@ -11,13 +11,16 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
+    "@nextui-org/modal": "^2.0.41",
     "@nextui-org/react": "^2.4.8",
     "@xterm/xterm": "^5.5.0",
     "framer-motion": "^11.5.6",
-    "lucide-react": "^0.445.0",
+    "lucide-react": "^0.447.0",
     "monaco-editor": "^0.52.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
+    "react-router-dom": "^6.26.2",
     "ws": "^8.18.0",
     "xterm": "^5.3.0",
     "xterm-addon-fit": "^0.8.0"
