@@ -2,8 +2,9 @@ import "./App.css";
 import { NextUIProvider } from "@nextui-org/react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { VSCode } from "./components/editor";
-import { SignUp } from "./components/sign-up";
+import { SignUpPage } from "./pages/sign-up";
 import { LoginPage } from "./pages/login";
+import { VerifyEmail } from "./pages/verifyEmail";
 
 const router = createBrowserRouter([
   {
@@ -12,11 +13,15 @@ const router = createBrowserRouter([
   },
   {
     path: "/auth/sign-up",
-    element: <SignUp />,
+    element: <SignUpPage />,
   },
   {
     path: "/auth/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/auth/verifyEmail",
+    element: <VerifyEmail />,
   },
 ]);
 
