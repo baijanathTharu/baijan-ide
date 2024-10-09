@@ -1,10 +1,20 @@
 "use client";
 
-import { useState, useRef, KeyboardEvent, ClipboardEvent } from "react";
+import {
+  useRef,
+  KeyboardEvent,
+  ClipboardEvent,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import { Input } from "@nextui-org/react";
 
-export const OTPInput = () => {
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+type TOTP = {
+  otp: string[];
+  setOtp: Dispatch<SetStateAction<string[]>>;
+};
+
+export const OTPInput = ({ otp, setOtp }: TOTP) => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (element: HTMLInputElement, index: number) => {
@@ -57,7 +67,7 @@ export const OTPInput = () => {
           onChange={(e) => handleChange(e.target, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
           onPaste={handlePaste}
-          className="text-center text-lg w-14"
+          className="text-center p-2 text-lg w-12 h-12"
           aria-label={`Digit ${index + 1} of OTP`}
           color="primary"
         />

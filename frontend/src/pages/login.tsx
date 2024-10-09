@@ -15,6 +15,8 @@ const ForgotPasswordModal = ({
   toggleNewPasswordVisible,
   isConfirmPasswordVisible,
   toggleConfirmPasswordVisible,
+  otp,
+  setOtp,
 }: {
   activeSection: TActiveSection;
   setActiveSection: Dispatch<SetStateAction<TActiveSection>>;
@@ -22,6 +24,8 @@ const ForgotPasswordModal = ({
   toggleNewPasswordVisible: () => void;
   isConfirmPasswordVisible: boolean;
   toggleConfirmPasswordVisible: () => void;
+  otp: string[];
+  setOtp: Dispatch<SetStateAction<string[]>>;
 }) => {
   const { startTimer, formattedTime } = useTimer({ initialTimeInSec: 300 });
 
@@ -51,7 +55,7 @@ const ForgotPasswordModal = ({
           We have sent you an otp. Check your mail.
         </p>
         <div className="flex flex-col gap-4">
-          <OTPInput />
+          <OTPInput otp={otp} setOtp={setOtp} />
           <p className="text-sm">The otp expires in {formattedTime}</p>
           <Button
             color="primary"
@@ -128,6 +132,7 @@ const ForgotPasswordModal = ({
 
 const useForgotPasswordModal = () => {
   const [activeSection, setActiveSection] = useState<TActiveSection>("initial");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
   const [isNewPasswordVisible, setIsNewPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
@@ -172,6 +177,8 @@ const useForgotPasswordModal = () => {
           toggleNewPasswordVisible={toggleNewPasswordVisible}
           isConfirmPasswordVisible={isConfirmPasswordVisible}
           toggleConfirmPasswordVisible={toggleConfirmPasswordVisible}
+          otp={otp}
+          setOtp={setOtp}
         />
       </ModalComponent>
     ),

@@ -3,8 +3,9 @@ import { NextUIProvider } from "@nextui-org/react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { VSCode } from "./components/editor";
-import { SignUpPage } from "./components/sign-up";
+import { SignUpPage } from "./pages/sign-up";
 import { LoginPage } from "./pages/login";
+import { VerifyEmail } from "./pages/verifyEmail";
 
 const router = createBrowserRouter([
   {
@@ -20,8 +21,8 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
-    path: "/auth/login",
-    element: <LoginPage />,
+    path: "/auth/verifyEmail",
+    element: <VerifyEmail />,
   },
 ]);
 
