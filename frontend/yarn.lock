@@ -859,7 +859,7 @@
     "@react-types/menu" "3.9.9"
     "@react-types/shared" "3.23.1"
 
-"@nextui-org/modal@2.0.41":
+"@nextui-org/modal@2.0.41", "@nextui-org/modal@^2.0.41":
   version "2.0.41"
   resolved "https://registry.yarnpkg.com/@nextui-org/modal/-/modal-2.0.41.tgz#3fba82661413236e9b41f3b4d6c50c3205d6292c"
   integrity sha512-Sirn319xAf7E4cZqvQ0o0Vd3Xqy0FRSuhOTwp8dALMGTMY61c2nIyurgVCNP6hh8dMvMT7zQEPP9/LE0boFCEQ==

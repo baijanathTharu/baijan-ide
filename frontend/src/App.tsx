@@ -4,6 +4,8 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { VSCode } from "./components/editor";
 import { SignUpPage } from "./components/sign-up";
+import { LoginPage } from "./pages/login";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -12,6 +14,14 @@ const router = createBrowserRouter([
   {
     path: "/auth/sign-up",
     element: <SignUpPage />,
+  },
+  {
+    path: "/auth/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "/auth/login",
+    element: <LoginPage />,
   },
 ]);
 
