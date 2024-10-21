@@ -5,6 +5,15 @@ import { ModalComponent } from "../components/modal";
 import { OTPInput } from "../components/otp-input";
 import { useTimer } from "../components/timer";
 import { Button } from "../components/button";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import {
+  loginUser,
+  TRegisterError,
+  TRegisterInput,
+  TRegisterOutput,
+} from "../data/login-user";
+import { useNavigate } from "react-router-dom";
 
 type TActiveSection = "initial" | "input_otp" | "reset_password";
 
@@ -187,6 +196,35 @@ const useForgotPasswordModal = () => {
 
 export const LoginPage = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const { register, handleSubmit } = useForm<TRegisterInput>();
+
+  const navigate = useNavigate();
+
+  const loginMutation = useMutation<
+    TRegisterOutput,
+    TRegisterError,
+    TRegisterInput
+  >({
+    mutationFn: async (data) => {
+      const response = await loginUser(data);
+      return response;
+    },
+    onSuccess: (data) => {
+      console.log("data ", data);
+      return navigate("/");
+    },
+    onError: (error) => {
+      console.error("error ", error.message);
+    },
+  });
+
+  const loginUserFn: SubmitHandler<TRegisterInput> = async (data) => {
+    try {
+      await loginMutation.mutateAsync(data);
+    } catch (error) {
+      console.log("error while loging in", error);
+    }
+  };
 
   const togglePasswordVisible = () => setIsPasswordVisible(!isPasswordVisible);
 
@@ -202,15 +240,31 @@ export const LoginPage = () => {
         <img src="/stock.jpg" className="h-full w-full" />
       </div>
       <div className="h-full w-1/2 flex items-center justify-center">
-        <form className="flex flex-col items-center gap-10 w-[500px] px-6">
+        <form
+          onSubmit={handleSubmit(loginUserFn)}
+          className="flex flex-col items-center gap-10 w-[500px] px-6"
+        >
           <h1 className="font-medium text-2xl">Log in to your account</h1>
           <div className="flex flex-col gap-4 w-full">
-            <Input color="default" type="email" label="Email" size="lg" />
             <Input
+              {...register("email")}
+              required
+              color="default"
+              type="email"
+              label="Email"
+              placeholder="Enter your email"
+              size="lg"
+              autoComplete="off"
+            />
+            <Input
+              {...register("password")}
+              required
               color="default"
               type={isPasswordVisible ? "text" : "password"}
               label="Password"
+              placeholder="Enter your password"
               size="lg"
+              autoComplete="off"
               endContent={
                 <button
                   className="focus:outline-none"
@@ -226,16 +280,16 @@ export const LoginPage = () => {
                 </button>
               }
             />
-            <a href="/" className="w-full">
-              <Button
-                color="primary"
-                size="lg"
-                variant="solid"
-                className="text-lg w-full"
-              >
-                Log In
-              </Button>
-            </a>
+            <Button
+              color="primary"
+              type="submit"
+              size="lg"
+              variant="solid"
+              className="text-lg w-full"
+              disabled={loginMutation.isPending}
+            >
+              Log In
+            </Button>
           </div>
           <div className="flex items-center justify-between w-full text-sm">
             <p>

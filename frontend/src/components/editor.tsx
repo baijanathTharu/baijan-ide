@@ -257,6 +257,15 @@ export function VSCode() {
   const [editor, setEditor] =
     useState<monaco.editor.IStandaloneCodeEditor | null>(null);
 
+  // useEffect(() => {
+  //   fetch("http://localhost:4000/protected", {
+  //     method: "GET",
+  //   })
+  //     .then((res) => res.json())
+  //     .then((data) => console.log("data ", data))
+  //     .catch((error) => console.log("error ", error));
+  // }, []);
+
   useEffect(() => {
     if (editorRef.current && !editor) {
       const newEditor = monaco.editor.create(editorRef.current, {
