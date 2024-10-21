@@ -14,6 +14,7 @@ export type TRegisterError = {
 export const loginUser = async (body: TRegisterInput) => {
   const response = await fetch("http://localhost:4000/v1/auth/login", {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },

@@ -11,6 +11,7 @@ import helmet from "helmet";
 import compression from "compression";
 import { randomUUID } from "crypto";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import cookieParser from "cookie-parser";
 
 import { initWS } from "./utils/socket";
 import { logger } from "./utils/logger";
@@ -58,13 +59,12 @@ async function initServer() {
 
   app.use(compression());
   app.use(helmet());
+  app.use(cookieParser());
 
   app.use(
     cors({
-      origin(requestOrigin, callback) {
-        // fix this
-        callback(null, true);
-      },
+      origin: "http://localhost:5173",
+      credentials: true,
     })
   );
   app.use(express.urlencoded({ extended: true }));
