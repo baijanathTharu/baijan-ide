@@ -12,16 +12,21 @@ const router = createBrowserRouter([
     element: <VSCode />,
   },
   {
-    path: "/auth/sign-up",
-    element: <SignUpPage />,
-  },
-  {
-    path: "/auth/login",
-    element: <LoginPage />,
-  },
-  {
-    path: "/auth/verifyEmail",
-    element: <VerifyEmail />,
+    path: "auth",
+    children: [
+      {
+        path: "sign-up",
+        element: <SignUpPage />,
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "verify-email",
+        element: <VerifyEmail />,
+      },
+    ],
   },
 ]);
 
